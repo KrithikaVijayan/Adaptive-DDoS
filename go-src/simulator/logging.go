@@ -1,5 +1,5 @@
-
 package main
+
 // from http://www.goinggo.net/2013/11/using-log-package-in-go.html
 
 import (
@@ -22,7 +22,7 @@ func initLog(
 	errorHandle io.Writer) {
 
 	_DEBUG = log.New(traceHandle,
-		"BEGUG: ",
+		"DEBUG: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	_INFO = log.New(infoHandle,
@@ -38,15 +38,14 @@ func initLog(
 		log.Ldate|log.Ltime|log.Lshortfile)
 }
 
-
 func init() {
-	f1, err := os.OpenFile("debug.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	f1, err := os.OpenFile("debug.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-	    log.Fatalf("Error opening log file: %v", err)
+		log.Fatalf("Error opening log file: %v", err)
 	}
-	f2, err := os.OpenFile("stats.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	f2, err := os.OpenFile("stats.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-	    log.Fatalf("Error opening log file: %v", err)
+		log.Fatalf("Error opening log file: %v", err)
 	}
 	initLog(f1, f2, f1, f1)
 	//initLog(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)

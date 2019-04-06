@@ -24,6 +24,16 @@ func detect_TCP_SYN_Flood(tcp_pkt packet) bool {
 	return false
 }
 
+func detect_DNS_Amp(dns_pkt packet) bool {
+	rnd := rand.Float64()
+	if rnd < DNS_AMP_DETECT_ACCURACY {
+		// # attack packet received
+		return true
+	}
+
+	return false
+}
+
 func diagnose_UDP_Flood(pkt packet) packet {
 
 	if detect_UDP_Flood(pkt) {
@@ -57,6 +67,20 @@ func diagnose_TCP_SYN_Flood(pkt packet) packet {
 	return pkt
 }
 
+func diagnose_DNS_Amp(pkt packet) {
+
+	if detect_DNS_Amp(pkt) {
+		LOCK_CURR_TRAFFIC_STATS[pkt.ingress].Lock()
+		CURR_TRAFFIC_STATS[pkt.ingress]["DNS_AMP"] += pkt.packet_len
+		CURR_TRAFFIC_STATS[pkt.ingress]["total"] += pkt.packet_len
+		LOCK_CURR_TRAFFIC_STATS[pkt.ingress].Unlock()
+	} else {
+		LOCK_CURR_TRAFFIC_STATS[pkt.ingress].Lock()
+		CURR_TRAFFIC_STATS[pkt.ingress]["total"] += pkt.packet_len
+		LOCK_CURR_TRAFFIC_STATS[pkt.ingress].Unlock()
+	}
+}
+
 func isUDP(pkt packet) bool {
 	if pkt.protocol == "udp" {
 		return true
@@ -66,6 +90,13 @@ func isUDP(pkt packet) bool {
 
 func isTCP(pkt packet) bool {
 	if pkt.protocol == "tcp" {
+		return true
+	}
+	return false
+}
+
+func isDNS(pkt packet) bool {
+	if pkt.protocol == "dns" {
 		return true
 	}
 	return false
@@ -81,6 +112,11 @@ func diagnoseTraffic(pkt packet) packet {
 		if isTCP(pkt) {
 			pkt = diagnose_TCP_SYN_Flood(pkt)
 		}
+
+		if isDNS(pkt) {
+			diagnose_DNS_Amp(pkt)
+		}
+
 	} else {
 		LOCK_CURR_TRAFFIC_STATS[pkt.ingress].Lock()
 		CURR_TRAFFIC_STATS[pkt.ingress]["total"] += pkt.packet_len

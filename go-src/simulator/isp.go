@@ -121,6 +121,10 @@ func collectStats() {
 		// PREV_TRAFFIC_STATS[i]["tcp_syn"] = CURR_TRAFFIC_STATS[i]["tcp_syn"]
 		_INFO.Printf("Total_TCP_Syn %v Ingress %d", CURR_TRAFFIC_STATS[i]["tcp_syn"], i)
 		CURR_TRAFFIC_STATS[i]["tcp_syn"] = 0
+
+		// PREV_TRAFFIC_STATS[i]["dns_amp"] = CURR_TRAFFIC_STATS[i]["dns_amp"]
+		_INFO.Printf("Total_DNS_amp %v Ingress %d", CURR_TRAFFIC_STATS[i]["dns_amp"], i)
+		CURR_TRAFFIC_STATS[i]["dns_amp"] = 0
 		LOCK_CURR_TRAFFIC_STATS[i].Unlock()
 
 	}

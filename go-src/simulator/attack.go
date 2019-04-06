@@ -37,7 +37,10 @@ func attack() {
 	}
 }
 func amplify(pkt packet) packet {
-	ampFactor := 10.0
+	//ampFactor := 10.0
+	max := 10.0
+	min := 5.0
+	ampFactor := min + (rand.Float64() * (max - min))
 	pkt.packet_len = ampFactor * pkt.packet_len
 	return pkt
 }
