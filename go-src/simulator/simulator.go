@@ -1,40 +1,51 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
 	"os"
-	"runtime"
-	"time"
 
 	"../helper/fifo"
 	"../helper/go-cache"
+
+	// "fmt"
+	"encoding/json"
+	"log"
+	"runtime"
+	"time"
 )
 
-const TOTAL_BACKLOG_SIZE int = 256 // syn queue accepting 256 connnections
+const TOTAL_BACKLOG_SIZE int = 256 // syn queue acceoting 256 connnections
 
 var (
-	CONFIGURATION         Config
-	CURR_TRAFFIC_STATS    []map[string]float64
-	PEAK_TRAFFIC          []float64
-	MIN_TRAFFIC           []float64
-	AVG_TRAFFIC           []float64
+	CONFIGURATION      Config
+	CURR_TRAFFIC_STATS []map[string]float64
+	// PREV_TRAFFIC_STATS []map[string]int
+	PEAK_TRAFFIC []float64
+	MIN_TRAFFIC  []float64
+	AVG_TRAFFIC  []float64
+	// RECEIVE_COUNTER []int
 	legitimateDropCounter []int
-	pktQueue              []*fifo.Queue
-	Backlog_Queue         []*cache.Cache
-	ATTACK_TYPES          [3]string
-	BACKLOG               [TOTAL_BACKLOG_SIZE]string // array to store pkts
+	TargetDropCounter     int
+	// processCounter []int
+	// BUFFER []*fifo.Queue
+	RTT            time.Duration
+	pktQueue       []*fifo.Queue
+	tPktQueue      *fifo.Queue
+	BACKLOG_TARGET *cache.Cache
+	ATTACK_TYPES   [3]string
+	BACKLOG        [TOTAL_BACKLOG_SIZE]string // array to store pkts
 
-	NUM_VMs                 []map[string]int
-	INGRESS_CAP             []map[string]*VM
-	PKT_LEN                 float64 = 100.0 * 8 / 1000000
-	UDP_DETECT_ACCURACY     float64 = 0.9
-	TCP_SYN_DETECT_ACCURACY float64 = 0.9
-	DNS_AMP_DETECT_ACCURACY float64 = 0.9
-	EPOCH_TIME                      = 5.0
-	WINDOW_COUNTER          int
-	CONN_IN_BACKLOG         int = 0 //num of connection in backlog
-	times                   string
+	NUM_VMs                  []map[string]int
+	INGRESS_CAP              []map[string]*VM
+	PKT_LEN                  float64 = 100.0 * 8 / 1000000
+	UDP_DETECT_ACCURACY      float64 = 0.9
+	TCP_SYN_DETECT_ACCURACY  float64 = 0.9
+	DNS_AMP_DETECT_ACCURACY  float64 = 0.9
+	EPOCH_TIME                       = 5.0
+	WINDOW_COUNTER           int
+	CONN_IN_BACKLOG          int = 0 //num of connection in backlog
+	CONN_CUST                int = 0 //num of connection in customer
+	times                    string
+	TARGET_NETWORK_RESOURCES *VM
 )
 
 func main() {
@@ -67,7 +78,7 @@ func main() {
 	// start legitimate traffic thread
 	_DEBUG.Printf("Start legitimate traffic thread")
 	for j := 0; j < CONFIGURATION.INGRESS_LOC; j++ {
-		go flowGenBenign("simple", j)
+		flowGenBenign("simple", j)
 	}
 	// start attack traffic thread
 	_DEBUG.Printf("Start attack traffic thread")
@@ -81,6 +92,7 @@ func main() {
 	// processingThread.start()
 	statsTicker := time.NewTicker(time.Duration(EPOCH_TIME) * time.Second)
 	processTicker := time.NewTicker(time.Duration(CONFIGURATION.PROCESSING_DELAY) * time.Millisecond)
+
 	// go processing()
 	// go flowGenBenign("simple", 0)
 	for {

@@ -74,6 +74,7 @@ func staticMitigation() {
 		// perSec := (AVG_TRAFFIC[i] / CONFIGURATION.EPOCH_TIME) * PKT_LEN
 		perSec_tcp := ((AVG_TRAFFIC[i] / CONFIGURATION.EPOCH_TIME) * PKT_LEN) / float64(CURR_TRAFFIC_STATS[i]["tcp_syn"])
 		perSec_udp := ((AVG_TRAFFIC[i] / CONFIGURATION.EPOCH_TIME) * PKT_LEN) / float64(CURR_TRAFFIC_STATS[i]["udp_flood"])
+		perSec_dns := ((AVG_TRAFFIC[i] / CONFIGURATION.EPOCH_TIME) * PKT_LEN) / float64(CURR_TRAFFIC_STATS[i]["dns_amp"])
 		// if (float64(CURR_TRAFFIC_STATS[i]["total"]))*PKT_LEN > PEAK_TRAFFIC[i] {
 		// 	PEAK_TRAFFIC[i] = float64(CURR_TRAFFIC_STATS[i]["total"]) * PKT_LEN
 		// }
@@ -84,8 +85,9 @@ func staticMitigation() {
 
 		LOCK_CURR_TRAFFIC_STATS[i].Unlock()
 		// # INGRESS_CAP[i] = random.uniform(MIN_TRAFFIC[i],PEAK_TRAFFIC[i])
-		changeCapacity(i, perSec_tcp,"TCP_SYN")
-		changeCapacity(i, perSec_udp,"UDP_FLOOD")
+		changeCapacity(i, perSec_tcp, "TCP_SYN")
+		changeCapacity(i, perSec_udp, "UDP_FLOOD")
+		changeCapacity(i, perSec_dns, "DNS_AMP")
 
 	}
 }
@@ -108,7 +110,7 @@ func adaptiveMitigation() {
 
 		LOCK_CURR_TRAFFIC_STATS[i].Unlock()
 		// # INGRESS_CAP[i] = random.uniform(MIN_TRAFFIC[i],PEAK_TRAFFIC[i])
-		changeCapacity(i, perSec,"")
+		changeCapacity(i, perSec, "")
 
 	}
 }
